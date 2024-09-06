@@ -33,7 +33,7 @@ class AssertThatFunctionDynamicReturnTypeExtension implements DynamicFunctionRet
 	{
 		if (count($functionCall->getArgs()) === 0) {
 			return ParametersAcceptorSelector::selectSingle(
-				$functionReflection->getVariants()
+				$functionReflection->getVariants(),
 			)->getReturnType();
 		}
 

@@ -18,8 +18,7 @@ use function substr;
 class AssertTypeSpecifyingExtension implements StaticMethodTypeSpecifyingExtension, TypeSpecifierAwareExtension
 {
 
-	/** @var TypeSpecifier */
-	private $typeSpecifier;
+	private TypeSpecifier $typeSpecifier;
 
 	public function setTypeSpecifier(TypeSpecifier $typeSpecifier): void
 	{
@@ -76,7 +75,7 @@ class AssertTypeSpecifyingExtension implements StaticMethodTypeSpecifyingExtensi
 				$this->typeSpecifier,
 				$scope,
 				lcfirst(substr($staticMethodReflection->getName(), 3)),
-				$node->getArgs()
+				$node->getArgs(),
 			);
 		}
 
@@ -85,7 +84,7 @@ class AssertTypeSpecifyingExtension implements StaticMethodTypeSpecifyingExtensi
 			$scope,
 			self::trimName($staticMethodReflection->getName()),
 			$node->getArgs(),
-			substr($staticMethodReflection->getName(), 0, 6) === 'nullOr'
+			substr($staticMethodReflection->getName(), 0, 6) === 'nullOr',
 		);
 
 		if (substr($staticMethodReflection->getName(), 0, 3) === 'all') {

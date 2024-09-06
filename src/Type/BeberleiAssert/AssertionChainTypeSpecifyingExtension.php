@@ -18,8 +18,7 @@ use function substr;
 class AssertionChainTypeSpecifyingExtension implements MethodTypeSpecifyingExtension, TypeSpecifierAwareExtension
 {
 
-	/** @var TypeSpecifier */
-	private $typeSpecifier;
+	private TypeSpecifier $typeSpecifier;
 
 	public function setTypeSpecifier(TypeSpecifier $typeSpecifier): void
 	{
@@ -41,8 +40,8 @@ class AssertionChainTypeSpecifyingExtension implements MethodTypeSpecifyingExten
 			$methodReflection->getName(),
 			array_merge(
 				[new Arg(new LNumber(1))],
-				$node->getArgs()
-			)
+				$node->getArgs(),
+			),
 		);
 	}
 
@@ -73,7 +72,7 @@ class AssertionChainTypeSpecifyingExtension implements MethodTypeSpecifyingExten
 				$this->typeSpecifier,
 				$scope,
 				$methodReflection->getName(),
-				$args
+				$args,
 			);
 		}
 
@@ -82,7 +81,7 @@ class AssertionChainTypeSpecifyingExtension implements MethodTypeSpecifyingExten
 			$scope,
 			$methodReflection->getName(),
 			$args,
-			$calledOnType instanceof AssertThatNullOrType
+			$calledOnType instanceof AssertThatNullOrType,
 		);
 
 		if ($calledOnType instanceof AssertThatAllType) {

@@ -44,8 +44,8 @@ use function reset;
 class AssertHelper
 {
 
-	/** @var Closure[] */
-	private static $resolvers;
+	/** @var Closure[]|null */
+	private static ?array $resolvers = null;
 
 	/**
 	 * @param Arg[] $args
@@ -88,15 +88,15 @@ class AssertHelper
 				$expression,
 				new Identical(
 					$args[0]->value,
-					new ConstFetch(new Name('null'))
-				)
+					new ConstFetch(new Name('null')),
+				),
 			);
 		}
 
 		return $typeSpecifier->specifyTypesInCondition(
 			$scope,
 			$expression,
-			TypeSpecifierContext::createTruthy()
+			TypeSpecifierContext::createTruthy(),
 		);
 	}
 
@@ -111,9 +111,7 @@ class AssertHelper
 			reset($sureTypes);
 			$exprString = key($sureTypes);
 			$sureType = $sureTypes[$exprString];
-			return self::allArrayOrIterable($typeSpecifier, $scope, $sureType[0], static function () use ($sureType): Type {
-				return $sureType[1];
-			});
+			return self::allArrayOrIterable($typeSpecifier, $scope, $sureType[0], static fn (): Type => $sureType[1]);
 		}
 		if (count($specifiedTypes->getSureNotTypes()) > 0) {
 			throw new ShouldNotHappenException();
@@ -137,9 +135,7 @@ class AssertHelper
 				$typeSpecifier,
 				$scope,
 				$args[0]->value,
-				static function (Type $type): Type {
-					return TypeCombinator::removeNull($type);
-				}
+				static fn (Type $type): Type => TypeCombinator::removeNull($type),
 			);
 		}
 
@@ -155,9 +151,7 @@ class AssertHelper
 				$typeSpecifier,
 				$scope,
 				$args[0]->value,
-				static function (Type $type) use ($objectType): Type {
-					return TypeCombinator::remove($type, $objectType);
-				}
+				static fn (Type $type): Type => TypeCombinator::remove($type, $objectType),
 			);
 		}
 
@@ -167,9 +161,7 @@ class AssertHelper
 				$typeSpecifier,
 				$scope,
 				$args[0]->value,
-				static function (Type $type) use ($valueType): Type {
-					return TypeCombinator::remove($type, $valueType);
-				}
+				static fn (Type $type): Type => TypeCombinator::remove($type, $valueType),
 			);
 		}
 
@@ -178,17 +170,15 @@ class AssertHelper
 				$typeSpecifier,
 				$scope,
 				$args[0]->value,
-				static function (Type $type): Type {
-					return TypeCombinator::remove(
-						$type,
-						new UnionType([
-							new NullType(),
-							new ConstantBooleanType(false),
-							new ConstantStringType(''),
-							new ConstantArrayType([], []),
-						])
-					);
-				}
+				static fn (Type $type): Type => TypeCombinator::remove(
+					$type,
+					new UnionType([
+						new NullType(),
+						new ConstantBooleanType(false),
+						new ConstantStringType(''),
+						new ConstantArrayType([], []),
+					]),
+				),
 			);
 		}
 
@@ -242,7 +232,7 @@ class AssertHelper
 		return $typeSpecifier->create(
 			$expr,
 			$specifiedType,
-			TypeSpecifierContext::createTruthy()
+			TypeSpecifierContext::createTruthy(),
 		);
 	}
 
@@ -268,42 +258,30 @@ class AssertHelper
 	{
 		if (self::$resolvers === null) {
 			self::$resolvers = [
-				'integer' => static function (Scope $scope, Arg $value): Expr {
-					return new FuncCall(
-						new Name('is_int'),
-						[$value]
-					);
-				},
-				'string' => static function (Scope $scope, Arg $value): Expr {
-					return new FuncCall(
-						new Name('is_string'),
-						[$value]
-					);
-				},
-				'float' => static function (Scope $scope, Arg $value): Expr {
-					return new FuncCall(
-						new Name('is_float'),
-						[$value]
-					);
-				},
-				'numeric' => static function (Scope $scope, Arg $value): Expr {
-					return new FuncCall(
-						new Name('is_numeric'),
-						[$value]
-					);
-				},
-				'boolean' => static function (Scope $scope, Arg $value): Expr {
-					return new FuncCall(
-						new Name('is_bool'),
-						[$value]
-					);
-				},
-				'scalar' => static function (Scope $scope, Arg $value): Expr {
-					return new FuncCall(
-						new Name('is_scalar'),
-						[$value]
-					);
-				},
+				'integer' => static fn (Scope $scope, Arg $value): Expr => new FuncCall(
+					new Name('is_int'),
+					[$value],
+				),
+				'string' => static fn (Scope $scope, Arg $value): Expr => new FuncCall(
+					new Name('is_string'),
+					[$value],
+				),
+				'float' => static fn (Scope $scope, Arg $value): Expr => new FuncCall(
+					new Name('is_float'),
+					[$value],
+				),
+				'numeric' => static fn (Scope $scope, Arg $value): Expr => new FuncCall(
+					new Name('is_numeric'),
+					[$value],
+				),
+				'boolean' => static fn (Scope $scope, Arg $value): Expr => new FuncCall(
+					new Name('is_bool'),
+					[$value],
+				),
+				'scalar' => static fn (Scope $scope, Arg $value): Expr => new FuncCall(
+					new Name('is_scalar'),
+					[$value],
+				),
 				'objectOrClass' => static function (Scope $scope, Arg $value): ?Expr {
 					$valueType = $scope->getType($value->value);
 					if ((new StringType())->isSuperTypeOf($valueType)->yes()) {
@@ -312,27 +290,21 @@ class AssertHelper
 
 					return new FuncCall(
 						new Name('is_object'),
-						[$value]
+						[$value],
 					);
 				},
-				'isResource' => static function (Scope $scope, Arg $value): Expr {
-					return new FuncCall(
-						new Name('is_resource'),
-						[$value]
-					);
-				},
-				'isCallable' => static function (Scope $scope, Arg $value): Expr {
-					return new FuncCall(
-						new Name('is_callable'),
-						[$value]
-					);
-				},
-				'isArray' => static function (Scope $scope, Arg $value): Expr {
-					return new FuncCall(
-						new Name('is_array'),
-						[$value]
-					);
-				},
+				'isResource' => static fn (Scope $scope, Arg $value): Expr => new FuncCall(
+					new Name('is_resource'),
+					[$value],
+				),
+				'isCallable' => static fn (Scope $scope, Arg $value): Expr => new FuncCall(
+					new Name('is_callable'),
+					[$value],
+				),
+				'isArray' => static fn (Scope $scope, Arg $value): Expr => new FuncCall(
+					new Name('is_array'),
+					[$value],
+				),
 				'isInstanceOf' => static function (Scope $scope, Arg $expr, Arg $class): ?Expr {
 					$classType = $scope->getType($class->value);
 					$constantStrings = $classType->getConstantStrings();
@@ -342,7 +314,7 @@ class AssertHelper
 
 					return new Instanceof_(
 						$expr->value,
-						new Name($constantStrings[0]->getValue())
+						new Name($constantStrings[0]->getValue()),
 					);
 				},
 				'notIsInstanceOf' => static function (Scope $scope, Arg $expr, Arg $class): ?Expr {
@@ -355,105 +327,81 @@ class AssertHelper
 					return new BooleanNot(
 						new Instanceof_(
 							$expr->value,
-							new Name($constantStrings[0]->getValue())
-						)
-					);
-				},
-				'true' => static function (Scope $scope, Arg $expr): Expr {
-					return new Identical(
-						$expr->value,
-						new ConstFetch(new Name('true'))
-					);
-				},
-				'false' => static function (Scope $scope, Arg $expr): Expr {
-					return new Identical(
-						$expr->value,
-						new ConstFetch(new Name('false'))
-					);
-				},
-				'null' => static function (Scope $scope, Arg $expr): Expr {
-					return new Identical(
-						$expr->value,
-						new ConstFetch(new Name('null'))
-					);
-				},
-				'notNull' => static function (Scope $scope, Arg $expr): Expr {
-					return new NotIdentical(
-						$expr->value,
-						new ConstFetch(new Name('null'))
-					);
-				},
-				'same' => static function (Scope $scope, Arg $value1, Arg $value2): Expr {
-					return new Identical(
-						$value1->value,
-						$value2->value
-					);
-				},
-				'notSame' => static function (Scope $scope, Arg $value1, Arg $value2): Expr {
-					return new NotIdentical(
-						$value1->value,
-						$value2->value
-					);
-				},
-				'subclassOf' => static function (Scope $scope, Arg $expr, Arg $class): Expr {
-					return new FuncCall(
-						new Name('is_subclass_of'),
-						[
-							new Arg($expr->value),
-							$class,
-						]
-					);
-				},
-				'isJsonString' => static function (Scope $scope, Arg $value): Expr {
-					return new FuncCall(
-						new Name('is_string'),
-						[$value]
-					);
-				},
-				'integerish' => static function (Scope $scope, Arg $value): Expr {
-					return new FuncCall(
-						new Name('is_numeric'),
-						[$value]
-					);
-				},
-				'keyExists' => static function (Scope $scope, Arg $array, Arg $key): Expr {
-					return new FuncCall(
-						new Name('array_key_exists'),
-						[$key, $array]
-					);
-				},
-				'keyNotExists' => static function (Scope $scope, Arg $array, Arg $key): Expr {
-					return new BooleanNot(
-						new FuncCall(
-							new Name('array_key_exists'),
-							[$key, $array]
-						)
-					);
-				},
-				'notBlank' => static function (Scope $scope, Arg $value): Expr {
-					return new BooleanAnd(
-						new BooleanAnd(
-							new NotIdentical(
-								$value->value,
-								new ConstFetch(new Name('null'))
-							),
-							new NotIdentical(
-								$value->value,
-								new ConstFetch(new Name('false'))
-							)
+							new Name($constantStrings[0]->getValue()),
 						),
-						new BooleanAnd(
-							new NotIdentical(
-								$value->value,
-								new String_('')
-							),
-							new NotIdentical(
-								$value->value,
-								new Array_()
-							)
-						)
 					);
 				},
+				'true' => static fn (Scope $scope, Arg $expr): Expr => new Identical(
+					$expr->value,
+					new ConstFetch(new Name('true')),
+				),
+				'false' => static fn (Scope $scope, Arg $expr): Expr => new Identical(
+					$expr->value,
+					new ConstFetch(new Name('false')),
+				),
+				'null' => static fn (Scope $scope, Arg $expr): Expr => new Identical(
+					$expr->value,
+					new ConstFetch(new Name('null')),
+				),
+				'notNull' => static fn (Scope $scope, Arg $expr): Expr => new NotIdentical(
+					$expr->value,
+					new ConstFetch(new Name('null')),
+				),
+				'same' => static fn (Scope $scope, Arg $value1, Arg $value2): Expr => new Identical(
+					$value1->value,
+					$value2->value,
+				),
+				'notSame' => static fn (Scope $scope, Arg $value1, Arg $value2): Expr => new NotIdentical(
+					$value1->value,
+					$value2->value,
+				),
+				'subclassOf' => static fn (Scope $scope, Arg $expr, Arg $class): Expr => new FuncCall(
+					new Name('is_subclass_of'),
+					[
+						new Arg($expr->value),
+						$class,
+					],
+				),
+				'isJsonString' => static fn (Scope $scope, Arg $value): Expr => new FuncCall(
+					new Name('is_string'),
+					[$value],
+				),
+				'integerish' => static fn (Scope $scope, Arg $value): Expr => new FuncCall(
+					new Name('is_numeric'),
+					[$value],
+				),
+				'keyExists' => static fn (Scope $scope, Arg $array, Arg $key): Expr => new FuncCall(
+					new Name('array_key_exists'),
+					[$key, $array],
+				),
+				'keyNotExists' => static fn (Scope $scope, Arg $array, Arg $key): Expr => new BooleanNot(
+					new FuncCall(
+						new Name('array_key_exists'),
+						[$key, $array],
+					),
+				),
+				'notBlank' => static fn (Scope $scope, Arg $value): Expr => new BooleanAnd(
+					new BooleanAnd(
+						new NotIdentical(
+							$value->value,
+							new ConstFetch(new Name('null')),
+						),
+						new NotIdentical(
+							$value->value,
+							new ConstFetch(new Name('false')),
+						),
+					),
+					new BooleanAnd(
+						new NotIdentical(
+							$value->value,
+							new String_(''),
+						),
+						new NotIdentical(
+							$value->value,
+							new Array_(),
+						),
+					),
+				),
 			];
 		}
 

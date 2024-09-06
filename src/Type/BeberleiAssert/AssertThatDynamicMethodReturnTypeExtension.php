@@ -32,7 +32,7 @@ class AssertThatDynamicMethodReturnTypeExtension implements DynamicStaticMethodR
 	{
 		if (count($methodCall->getArgs()) === 0) {
 			return ParametersAcceptorSelector::selectSingle(
-				$methodReflection->getVariants()
+				$methodReflection->getVariants(),
 			)->getReturnType();
 		}
 

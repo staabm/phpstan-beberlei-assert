@@ -11,11 +11,9 @@ use function sprintf;
 class AssertThatType extends ObjectType
 {
 
-	/** @var Expr */
-	private $valueExpr;
+	private Expr $valueExpr;
 
-	/** @var Type */
-	private $valueType;
+	private Type $valueType;
 
 	public function __construct(
 		Expr $valueExpr,

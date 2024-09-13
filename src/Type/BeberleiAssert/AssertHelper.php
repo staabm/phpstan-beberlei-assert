@@ -233,6 +233,7 @@ class AssertHelper
 			$expr,
 			$specifiedType,
 			TypeSpecifierContext::createTruthy(),
+			$scope,
 		);
 	}
 

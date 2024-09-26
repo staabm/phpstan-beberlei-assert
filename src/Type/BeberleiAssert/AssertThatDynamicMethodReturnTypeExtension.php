@@ -5,7 +5,6 @@ namespace PHPStan\Type\BeberleiAssert;
 use PhpParser\Node\Expr\StaticCall;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\MethodReflection;
-use PHPStan\Reflection\ParametersAcceptorSelector;
 use PHPStan\Type\DynamicStaticMethodReturnTypeExtension;
 use PHPStan\Type\Type;
 use function count;
@@ -28,12 +27,10 @@ class AssertThatDynamicMethodReturnTypeExtension implements DynamicStaticMethodR
 		], true);
 	}
 
-	public function getTypeFromStaticMethodCall(MethodReflection $methodReflection, StaticCall $methodCall, Scope $scope): Type
+	public function getTypeFromStaticMethodCall(MethodReflection $methodReflection, StaticCall $methodCall, Scope $scope): ?Type
 	{
 		if (count($methodCall->getArgs()) === 0) {
-			return ParametersAcceptorSelector::selectSingle(
-				$methodReflection->getVariants(),
-			)->getReturnType();
+			return null;
 		}
 
 		$valueExpr = $methodCall->getArgs()[0]->value;

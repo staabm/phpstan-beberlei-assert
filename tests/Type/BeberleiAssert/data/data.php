@@ -48,7 +48,7 @@ class Foo
 		\PHPStan\Testing\assertType('callable(): mixed', $l);
 
 		Assertion::isArray($m);
-		\PHPStan\Testing\assertType('array', $m);
+		\PHPStan\Testing\assertType('array<mixed, mixed>', $m);
 
 		Assertion::objectOrClass($n);
 		\PHPStan\Testing\assertType('string', $n);

@@ -41,6 +41,22 @@ class Foo
 		Assertion::objectOrClass($j);
 		\PHPStan\Testing\assertType('object', $j);
 
+		Assertion::propertyExists($j, 'foo');
+		\PHPStan\Testing\assertType('object&hasProperty(foo)', $j);
+
+		Assertion::methodExists($j, 'doBar');
+		\PHPStan\Testing\assertType('object&hasMethod(doBar)&hasProperty(foo)', $j);
+
+		/** @var string $classString */
+		$classString = doFoo();
+		Assertion::classExists($classString);
+		\PHPStan\Testing\assertType('class-string', $classString);
+
+		/** @var string $interfaceString */
+		$interfaceString = doFoo();
+		Assertion::interfaceExists($interfaceString);
+		\PHPStan\Testing\assertType('class-string', $interfaceString);
+
 		Assertion::isResource($k);
 		\PHPStan\Testing\assertType('resource', $k);
 
